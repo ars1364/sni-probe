@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -112,12 +113,12 @@ var testDomains = map[string][]string{
 func resolveDNS(domain string) (string, error) {
 	r := &net.Resolver{
 		PreferGo: true,
-		Dial: func(ctx interface{ Deadline() (time.Time, bool) }, network, address string) (net.Conn, error) {
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
 			d := net.Dialer{Timeout: 5 * time.Second}
 			return d.Dial("udp", dnsServer)
 		},
 	}
-	ips, err := r.LookupHost(nil, domain)
+	ips, err := r.LookupHost(context.Background(), domain)
 	if err != nil {
 		return "", err
 	}
