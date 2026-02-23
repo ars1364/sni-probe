@@ -1,64 +1,34 @@
-# SNI Probe
+# sni-probe
 
-Connectivity diagnostic tool for SNI proxy users. Tests DNS resolution and TLS connectivity through the proxy for gaming, streaming, and app services.
+Network diagnostic tool for detecting DNS poisoning, DPI (deep packet inspection), and SNI-based blocking.
 
-## What it does
+## What it tests
 
-1. Resolves each test domain via the DNS server (`46.245.69.222`)
-2. Verifies the DNS returns the proxy IP (`188.40.147.153`)
-3. Attempts a TLS handshake through the proxy to the real server
-4. Reports pass/fail with latency for each domain
-5. Saves a JSON report file for sharing
-
-## Build
-
-```bash
-# Build for your platform
-go build -o sni-probe .
-
-# Cross-compile for Windows
-GOOS=windows GOARCH=amd64 go build -o sni-probe.exe .
-
-# Cross-compile for macOS
-GOOS=darwin GOARCH=arm64 go build -o sni-probe-mac .
-```
+| # | Section | What it does |
+|---|---------|-------------|
+| 1 | DNS Analysis | Compares system/public/custom DNS — detects poisoning & overrides |
+| 2 | Connectivity | Tests 36 domains across 13 services (Discord, Twitch, Battle.net, Steam, etc.) |
+| 3 | DPI Detection | Real SNI vs fake SNI to same IP — detects SNI-based blocking |
+| 4 | Cloudflare Path | Tests if DPI inspects traffic to Cloudflare IPs |
+| 5 | Network Quality | TCP latency, jitter, download speed |
 
 ## Usage
 
-**Before running:** Set your DNS to `46.245.69.222`
-
-```bash
-# Linux/macOS
-./sni-probe
-
-# Windows
-sni-probe.exe
+```
+# Set DNS to 46.245.69.222 first
+sni-probe-windows-amd64.exe
 ```
 
-## Output
+Generates `sni-probe-report-*.json` — share it for troubleshooting.
 
-```
-╔══════════════════════════════════════════════════════╗
-║         SNI Proxy Connectivity Probe                ║
-║         DNS: 46.245.69.222                          ║
-╚══════════════════════════════════════════════════════╝
+## Download
 
-Testing 35 domains across 17 services...
+**[Releases](https://github.com/ars1364/sni-probe/releases/latest)** — Windows & Linux binaries.
 
-  ✅ discord.com                  [Discord] 320ms
-  ✅ open.spotify.com             [Spotify] 450ms
-  ❌ eu.actual.battle.net         [Battle.net] TLS: timeout
-  ...
+## Legend
 
-────────────────────────────────────────────────────────
-  DNS OK: 35/35  |  TLS OK: 33/35  |  Failed: 2
-────────────────────────────────────────────────────────
-
-  📄 Full report saved: sni-probe-report-20260222-193000.json
-```
-
-Share the JSON file for troubleshooting.
-
-## Services Tested
-
-Discord, Spotify, Steam/Epic, Riot (LoL/Valorant), EA, Xbox Live, Nintendo, Battle.net, Ubisoft, ChatGPT, Claude AI, Twitch, Nvidia, Fortnite, Google AI, Apple Music
+- ☠️ DNS poisoned (ISP returns fake IP)
+- 🛡️ DPI blocked (ISP reads TLS SNI, resets connection)
+- 🚫 IP blocked
+- 🔀 DNS overridden to proxy
+- ✅ Working
